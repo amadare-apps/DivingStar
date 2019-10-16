@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class Trampoline : MonoBehaviour
 {
-	public float SpringRate = 0.1f;
-	public float ResistanceRate = 0.02f;
+	public float SpringRate = 40000f;
+	public float ResistanceRate = 10f;
+
+	public bool JumpBoost;
 
 	Rigidbody rBody;
 
@@ -26,6 +28,10 @@ public class Trampoline : MonoBehaviour
 		var springForce = Vector3.down * this.transform.localPosition.y * SpringRate;
 		var resistanceForce = Vector3.down * rBody.velocity.y * ResistanceRate;
 		//Debug.Log("y="+this.transform.localPosition.y+" velocity="+rBody.velocity+" sprint="+springForce+" resistance="+resistanceForce);
+
+		if(JumpBoost && rBody.velocity.y > 0f){
+			springForce *= 5f;
+		}
 
 		rBody.AddForce(springForce + resistanceForce);
 

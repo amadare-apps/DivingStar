@@ -16,11 +16,11 @@ TagManager:
   - PostProcessing
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Ground
+  - Trampoline
+  - Ring
+  - Walter
   - 
   - 
   - 
