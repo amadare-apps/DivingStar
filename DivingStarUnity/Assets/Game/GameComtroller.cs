@@ -10,8 +10,9 @@ public class GameComtroller : MonoBehaviour
 	public enum State
 	{
 		InGame,
-		GameOver,
-		GameOverNext,
+		ShowRecord,
+		Crash,
+		Drown,
 	}
 	public State state;
 	float timeSinceStateChanged;
@@ -30,14 +31,21 @@ public class GameComtroller : MonoBehaviour
 	public Jumper jumper;
 
 	// UI
+	public TextMeshProUGUI HeightLabel;
 	public GameObject InWaterObj;
 	public TextMeshProUGUI DepthLabel;
 	public Image BoostGauge;
+	public Image DangerGaugeYellow;
+	public Image DangerGaugeRed;
+
+	public TextMeshProUGUI RecordLabel;
+	public TextMeshProUGUI CrashLabel;
+	public TextMeshProUGUI DrownLabel;
 
 
 
-    // Start is called before the first frame update
-    void Awake()
+	// Start is called before the first frame update
+	void Awake()
     {
 		TouchController.Instance.Initialize();
 
@@ -71,19 +79,16 @@ public class GameComtroller : MonoBehaviour
 
 		if(state == State.InGame){
 
+			SetHeightLabel();
 			SetDepthLabel();
 
-		}else if (state == State.GameOver) {
+		}else if (state == State.ShowRecord || state == State.Crash || state == State.Drown) {
 
 			if (timeSinceStateChanged > 2f) {
-				state = State.GameOverNext;
-			}
-
-		}else if(state == State.GameOverNext){
-
-			if(TouchController.Instance.GetTouchCount() == 1){
-				Initialize();
-				state = State.InGame;
+				if (TouchController.Instance.GetTouchCount() == 1) {
+					Initialize();
+					state = State.InGame;
+				}
 			}
 		}
 	}
@@ -93,11 +98,29 @@ public class GameComtroller : MonoBehaviour
 		DepthLabel.SetText(string.Format("{0}m", depth));
 	}
 
+	int maxHeight = 0;
+	void SetHeightLabel(){
+		int height = jumper.transform.position.y > 0f ? Mathf.RoundToInt(Mathf.Abs(jumper.transform.position.y)) : 0;
+		maxHeight = Mathf.Max(maxHeight, height);
+		HeightLabel.SetText(string.Format("{0}m", maxHeight));
+	}
+
 	public void SwitchToInitial()
 	{
+		maxHeight = 0;
+		HeightLabel.gameObject.SetActive(false);
 		SetActiveTrampoline(true);
 		SetActiveRings(false);
 		InWaterObj.SetActive(false);
+
+		RecordLabel.gameObject.SetActive(false);
+		CrashLabel.gameObject.SetActive(false);
+		DrownLabel.gameObject.SetActive(false);
+	}
+
+	public void ToJump(){
+		HeightLabel.gameObject.SetActive(true);
+		SetHeightLabel();
 	}
 
 	// 落下開始時にコール
@@ -110,15 +133,44 @@ public class GameComtroller : MonoBehaviour
 	public void ToDiving(){
 		InWaterObj.SetActive(true);
 		BoostGauge.fillAmount = 1f;
+		DangerGaugeYellow.fillAmount = 0f;
+		DangerGaugeRed.fillAmount = 0f;
 	}
 
-	public void SetBoostGaugeRate(float rate){
+	public void SetBoostGaugeRate(float rate, float dangerRate){
 		BoostGauge.fillAmount = rate;
+		var yellow = (dangerRate > 0.82f ? 0.82f : dangerRate) / 0.82f;
+		var red = (dangerRate < 0.82f ? 0f : dangerRate - 0.82f) / 0.18f;
+		if (yellow < 0f) yellow = 0f;
+		if (red < 0f) red = 0f;
+		DangerGaugeYellow.fillAmount = yellow;
+		DangerGaugeRed.fillAmount = red;
 	}
 
-	public void ToGameOver(){
-		this.state = State.GameOver;
+	public void ToRecord()
+	{
+		this.state = State.ShowRecord;
 		this.timeSinceStateChanged = 0f;
+
+		int depth = jumper.transform.position.y < 0f ? Mathf.RoundToInt(Mathf.Abs(jumper.transform.position.y)) : 0;
+		RecordLabel.SetText(string.Format("Record {0}m", depth));
+		RecordLabel.gameObject.SetActive(true);
+	}
+
+	public void ToCrash()
+	{
+		this.state = State.Crash;
+		this.timeSinceStateChanged = 0f;
+
+		CrashLabel.gameObject.SetActive(true);
+	}
+
+	public void ToDrown()
+	{
+		this.state = State.Drown;
+		this.timeSinceStateChanged = 0f;
+
+		DrownLabel.gameObject.SetActive(true);
 	}
 
 
@@ -126,7 +178,7 @@ public class GameComtroller : MonoBehaviour
 	void SetActiveTrampoline(bool active){
 		if(Trampo != null){
 			TrampoObj.SetActive(active);
-			Trampo.JumpBoost = false;
+			Trampo.Reset();
 		}
 	}
 

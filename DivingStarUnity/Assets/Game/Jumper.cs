@@ -13,12 +13,14 @@ public class Jumper : MonoBehaviour
 		Diving,
 		Finish,
 		Crash,
+		Drown,//溺れる
 	}
 	State state;
 	float timeSinceStateChanged;
 
 	public GameComtroller game;
 	public GameObject Model;
+	public GameObject HeadLight;
 	public Trampoline Trampo;
 
 	public float DefaultDownForce = 150f;
@@ -29,6 +31,7 @@ public class Jumper : MonoBehaviour
 
 	public float BoostTimeMax = 3f;
 	public float UsedBoostTime = 0f;
+	public float DangerRate = 0f;
 
 	Animator anim;
 	Rigidbody rBody;
@@ -47,6 +50,7 @@ public class Jumper : MonoBehaviour
 
 		initCameraJointAnchor = game.JumpCamera.GetComponent<SpringJoint>().connectedAnchor;
 		initCameraAngle = game.JumpCamera.transform.localEulerAngles;
+		HeadLight.SetActive(false);
 	}
 
 	private void FixedUpdate()
@@ -65,6 +69,7 @@ public class Jumper : MonoBehaviour
 						if (state == State.Idle) {
 							state = State.Jump;
 							Trampo.JumpBoost = true;
+							//game.ToJump();
 						}
 					}
 				}
@@ -90,6 +95,7 @@ public class Jumper : MonoBehaviour
 					state = State.Round;
 					timeSinceStateChanged = 0f;
 
+					// いったんJoint切断
 					GameObject.Destroy(game.JumpCamera.GetComponent<SpringJoint>());
 
 					var cameraBody = game.JumpCamera.GetComponent<Rigidbody>();
@@ -202,7 +208,7 @@ public class Jumper : MonoBehaviour
 
 			var delta = TouchController.Instance.TouchDeltaFromStartPos();
 			if (delta != Vector2.zero) {
-				float moveRate = 0.005f;
+				float moveRate = 0.0025f;
 				var addPos = new Vector3(delta.x * moveRate, 0, delta.y * moveRate);
 				if (addPos.x > 1f) addPos.x = 1f;
 				if (addPos.z > 1f) addPos.z = 1f;
@@ -220,12 +226,16 @@ public class Jumper : MonoBehaviour
 			if (this.transform.position.y < 0f) {
 				state = State.Diving;
 				HyperCasualGames.VibrationController.Triple();
+				HeadLight.SetActive(true);
 				game.ToDiving();
 			}
 
 		}else if(state == State.Diving){
+			// 水中
 
+			// ブースト残量あり
 			if(TouchController.Instance.GetTouchCount() == 1 && UsedBoostTime < BoostTimeMax){
+
 				float used = Time.fixedDeltaTime;
 				if (used + UsedBoostTime > BoostTimeMax) used = BoostTimeMax - UsedBoostTime;
 
@@ -233,20 +243,46 @@ public class Jumper : MonoBehaviour
 
 				rBody.AddForce(Vector3.down * BoostRate);
 
-				game.SetBoostGaugeRate((BoostTimeMax - UsedBoostTime)/BoostTimeMax);
+				var thisUsedRate = used / BoostTimeMax;//消費したゲージの
+				DangerRate += thisUsedRate * 1.5f;//1.5倍デンジャーゲージがたまる
+
+			}else{
+				// 消費していない間はデンジャーゲージ回復
+				float recovery = 2f * Time.fixedDeltaTime / BoostTimeMax;
+				DangerRate -= recovery;
+				if (DangerRate < 0f) DangerRate = 0f;
 			}
+
+			game.SetBoostGaugeRate((BoostTimeMax - UsedBoostTime) / BoostTimeMax, DangerRate);
 
 			rBody.AddForce(Vector3.up * WaterResistance);
 
-			if(rBody.velocity.y > 0f){
+			if (rBody.velocity.y >= 0f) {
+
 				state = State.Finish;
 				rBody.isKinematic = true;
-				game.ToGameOver();
+				game.ToRecord();
+
+			} else if(DangerRate >= 1f){
+
+				state = State.Drown;
+				game.ToDrown();
+
+				rBody.useGravity = false;
+				rBody.velocity = Vector3.down * 2.0f;
+
+				GameObject.Destroy(game.JumpCamera.GetComponent<FixedJoint>());
+				GameObject.Destroy(game.JumpCamera.GetComponent<Rigidbody>());
+				//game.JumpCamera.GetComponent<Rigidbody>().useGravity = false;
+				//game.JumpCamera.GetComponent<Rigidbody>().velocity = Vector3.down * 1.0f;
 			}
 
-		}else if(state == State.Crash){
+		} else if(state == State.Crash){
 
 			game.JumpCamera.transform.LookAt(this.transform);
+
+		}else if(state == State.Drown){
+
 		}
 
 
@@ -266,7 +302,7 @@ public class Jumper : MonoBehaviour
 
 			HyperCasualGames.VibrationController.Triple();
 
-			game.ToGameOver();
+			game.ToCrash();
 		}
 	}
 

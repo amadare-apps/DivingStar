@@ -4,10 +4,13 @@ using UnityEngine;
 
 public class Trampoline : MonoBehaviour
 {
+	public GameComtroller game;
+
 	public float SpringRate = 40000f;
 	public float ResistanceRate = 10f;
 
 	public bool JumpBoost;
+	bool slow;
 
 	Rigidbody rBody;
 
@@ -22,6 +25,12 @@ public class Trampoline : MonoBehaviour
 
 	}
 
+	public void Reset()
+	{
+		JumpBoost = false;
+		slow = false;
+	}
+
 	private void FixedUpdate()
 	{
 		// spring
@@ -30,7 +39,18 @@ public class Trampoline : MonoBehaviour
 		//Debug.Log("y="+this.transform.localPosition.y+" velocity="+rBody.velocity+" sprint="+springForce+" resistance="+resistanceForce);
 
 		if(JumpBoost && rBody.velocity.y > 0f){
-			springForce *= 5f;
+			springForce *= 9.5f;
+		}
+
+		if(JumpBoost && !slow) {
+			if(Time.timeScale < 1f){
+				Time.timeScale = 1f;
+				slow = true;
+				game.ToJump();
+			} else if(this.transform.localPosition.y < -0.004f && rBody.velocity.y > -1.2f) {
+				Debug.Log("TimeScale = 0.1f velocity = "+rBody.velocity.y+" trans="+this.transform.localPosition.y);
+				Time.timeScale = 0.05f;
+			}
 		}
 
 		rBody.AddForce(springForce + resistanceForce);
