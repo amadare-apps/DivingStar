@@ -25,6 +25,7 @@ public class Jumper : MonoBehaviour
 	public GameObject HeadLight;
 	public Trampoline Trampo;
 	public TimingRings timingRings;
+	public ParticleSystem TrailEffect;
 
 	public float DefaultDownForce = 150f;
 	public float TapAddForceRate = 2f;
@@ -46,7 +47,6 @@ public class Jumper : MonoBehaviour
 
 	JumpCamera jumpCamera;
 
-	public float velocity;
 
 
 	// Start is called before the first frame update
@@ -59,6 +59,7 @@ public class Jumper : MonoBehaviour
 		initCameraJointAnchor = this.jumpCamera.GetComponent<SpringJoint>().connectedAnchor;
 		initCameraAngle = this.jumpCamera.transform.localEulerAngles;
 		HeadLight.SetActive(false);
+		TrailEffect.gameObject.SetActive(false);
 	}
 
 	void ChangeState(State state)
@@ -82,18 +83,20 @@ public class Jumper : MonoBehaviour
 				if (timeSinceStateChanged > 2f && state == State.Idle) {
 					if (TouchController.Instance.GetTouchCount() == 1) {
 						ChangeState(State.PreCharge);
-						//Trampo.ToPreCharge();
+						jumpCamera.ToCharge();
 					}
 				}else if(state == State.PreCharge){
 
-					if (this.transform.localPosition.y < -0.003f && rBody.velocity.y > -1.0f) {
+					if (this.transform.localPosition.y < -0.003f && rBody.velocity.y > -1.8f) {
 						Debug.Log("PreCharge velocity = " + rBody.velocity.y + " trans=" + this.transform.localPosition.y);
 						ChangeState(State.Charge);
 						rBody.velocity = Vector3.zero;
 						rBody.useGravity = false;
 						//HyperCasualGames.VibrationController.Triple();
-						jumpCamera.ToCharge();
+						//jumpCamera.ToCharge();
 						Trampo.ToCharge();
+
+						TrailEffect.gameObject.SetActive(true);
 					}
 				}
 			}
@@ -103,7 +106,7 @@ public class Jumper : MonoBehaviour
 			if (rBody.velocity.y > 0f) {
 				if (!animTriggered) {
 					anim.SetTrigger("Jump");
-					HyperCasualGames.VibrationController.Single2();
+					HyperCasualGames.VibrationController.Single1();
 					animTriggered = true;
 				}
 			} else {
@@ -146,12 +149,14 @@ public class Jumper : MonoBehaviour
 				game.ToJump();
 
 				rBody.useGravity = true;
+			}else{
+				HyperCasualGames.VibrationController.Single1();
 			}
 
 		} else if(state == State.Jump){
 
 			// ジャンプ後、降下し始めるちょい前に回転開始
-			if (this.transform.localPosition.y > 0f && rBody.velocity.y < 0.2f) {
+			if (this.transform.localPosition.y > 0f && rBody.velocity.y < 0.1f) {
 
 				ChangeState(State.Round);
 				jumpCamera.ToRound();
@@ -198,18 +203,18 @@ public class Jumper : MonoBehaviour
 				if (addPos.x < -1f) addPos.x = -1f;
 				if (addPos.z < -1f) addPos.z = -1f;
 				//Debug.Log("add pos=" + addPos);
-				var toPos = rBody.position + addPos;
+				var toPos = this.transform.position + addPos;
 				if (toPos.x > 10f) toPos.x = 10f;
 				if (toPos.z > 10f) toPos.z = 10f;
 				if (toPos.x < -10f) toPos.x = -10f;
 				if (toPos.z < -10f) toPos.z = -10f;
-				rBody.position = toPos;
+				this.transform.position = toPos;
 			}
 
 			if (this.transform.position.y < 0f) {
 				ChangeState(State.Diving);
 				jumpCamera.ToDiving();
-				HyperCasualGames.VibrationController.Triple();
+				//HyperCasualGames.VibrationController.Triple();
 				//HeadLight.SetActive(true);
 				game.ToDiving();
 			}
@@ -275,8 +280,6 @@ public class Jumper : MonoBehaviour
 		}else if(state == State.Drown){
 
 		}
-
-		this.velocity = rBody.velocity.y;
 	}
 
 	private void OnCollisionEnter(Collision collision)
@@ -284,7 +287,7 @@ public class Jumper : MonoBehaviour
 		if(state == State.Idle){
 
 			if(collision.collider.GetComponent<Trampoline>()){
-				HyperCasualGames.VibrationController.Single0();
+				//HyperCasualGames.VibrationController.Single0();
 			}
 
 		} else if (state == State.Descent){

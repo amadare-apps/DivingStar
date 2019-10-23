@@ -83,23 +83,23 @@ public class JumpCamera : MonoBehaviour
 
 		if(state == State.Charge){
 
-			float t = timeSinceStateChanged > 2f ? 1f : timeSinceStateChanged / 2f;
+			float t = timeSinceStateChanged > 0.5f ? 1f : timeSinceStateChanged / 0.5f;
 
-			var toDiff = new Vector3(0f, 5f, -9f);
+			var toDiff = new Vector3(0f, 4.5f, -9.0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 
 			this.transform.position = jumper.transform.position + toDiff;
-			Debug.Log("Camera.State.Charge lerp to=" + toDiff + " at="+posDeltaAtStateChanged);
+			Debug.Log("Camera.State.Charge lerp to=" + toDiff + " (at="+posDeltaAtStateChanged+")");
 
 		} else if(state == State.Jump){
 
-			float lerpTime = 3f;
+			float lerpTime = 0.5f;
 
 			if (timeSinceStateChanged < lerpTime) {
 
 				float t = timeSinceStateChanged > lerpTime ? 1f : timeSinceStateChanged / lerpTime;
 
-				var toDiff = new Vector3(0f, -jumperBody.velocity.y * 0.1f, -8f);
+				var toDiff = new Vector3(0f, -jumperBody.velocity.y * 0.2f, -8f);
 				toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 				//if (toDiff.y < - 20f) toDiff.y = - 20f;
 
@@ -108,7 +108,7 @@ public class JumpCamera : MonoBehaviour
 
 			} else {
 
-				var toDiff = new Vector3(0f, -jumperBody.velocity.y * 0.1f, -8f);
+				var toDiff = new Vector3(0f, -jumperBody.velocity.y * 0.2f, -8f);
 				if (toDiff.y < - 15f) toDiff.y = - 15f;
 
 				this.transform.position = jumper.transform.position + toDiff;
@@ -119,7 +119,7 @@ public class JumpCamera : MonoBehaviour
 
 		}else if(state == State.Round){
 
-			float t = timeSinceStateChanged > 2f ? 1f : timeSinceStateChanged / 2f;
+			float t = timeSinceStateChanged > 1.8f ? 1f : timeSinceStateChanged / 1.8f;
 
 			var toDiff = new Vector3(0f, 4f, 0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
@@ -127,31 +127,33 @@ public class JumpCamera : MonoBehaviour
 			this.transform.position = jumper.transform.position + toDiff;
 
 			this.transform.LookAt(jumper.transform.position, this.transform.up);
+			Debug.Log("Camera.State.Round lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")");
 
-			// iru?
-			var lookAtPos = jumper.transform.position;
-			this.transform.LookAt(lookAtPos, this.transform.up);
-			if (this.transform.eulerAngles.x > 90f) {
-				this.transform.eulerAngles = new Vector3(90f, 0f, 0f);
-			}
-			if (this.transform.eulerAngles.y < 0f) {
-				this.transform.eulerAngles = new Vector3(this.transform.eulerAngles.x, 0f, 0f);
-			}
+			//// iru?
+			//var lookAtPos = jumper.transform.position;
+			//this.transform.LookAt(lookAtPos, this.transform.up);
+			//if (this.transform.eulerAngles.x > 90f) {
+			//	this.transform.eulerAngles = new Vector3(90f, 0f, 0f);
+			//}
+			//if (this.transform.eulerAngles.y < 0f) {
+			//	this.transform.eulerAngles = new Vector3(this.transform.eulerAngles.x, 0f, 0f);
+			//}
 
 			//this.transform.LookAt(jumper.transform, this.transform.up);
 
-		}else if(state == State.Descent){
+		} else if(state == State.Descent){
 
 			float t = timeSinceStateChanged > 1f ? 1f : timeSinceStateChanged / 1f;
 
 			var toDiff = new Vector3(0f, jumperBody.velocity.y * 0.1f, 0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
-			if (toDiff.y < 6f) toDiff.y = 4f;
+			if (toDiff.y < 4f) toDiff.y = 4f;
 			if (toDiff.y > 8f) toDiff.y = 8f;
 
 			this.transform.position = jumper.transform.position + toDiff;
+			Debug.Log("Camera.State.Descent lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")");
 
-			this.transform.LookAt(jumper.transform, this.transform.up);
+			this.transform.LookAt(jumper.transform.position, this.transform.up);
 
 		}else if(state == State.Diving){
 
@@ -159,11 +161,11 @@ public class JumpCamera : MonoBehaviour
 
 			var toDiff = new Vector3(0f, jumperBody.velocity.y * 0.1f, 0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
-			if (toDiff.y < 6f) toDiff.y = 4f;
+			if (toDiff.y < 6f) toDiff.y = 6f;
 			if (toDiff.y > 8f) toDiff.y = 8f;
 
 			this.transform.position = jumper.transform.position + toDiff;
-			this.transform.LookAt(jumper.transform, this.transform.up);
+			this.transform.LookAt(jumper.transform.position, this.transform.up);
 		}
 	}
 }

@@ -4511,6 +4511,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 755510ff7d8bd433c8444dcd18232509, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  state: 0
 --- !u!1001 &737846338
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4583,6 +4584,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4451508207631778, guid: f8332fba29c64c041b261e4069ae7363,
     type: 3}
   m_PrefabInstance: {fileID: 737846338}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &750225362 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 198371684985884790, guid: 97f0c3b3efcb7c44db21c24189d5f688,
+    type: 3}
+  m_PrefabInstance: {fileID: 2023753447}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &752114688
 GameObject:
@@ -12460,15 +12467,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4166140968286780, guid: 97f0c3b3efcb7c44db21c24189d5f688, type: 3}
       propertyPath: m_LocalScale.x
-      value: 8
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 4166140968286780, guid: 97f0c3b3efcb7c44db21c24189d5f688, type: 3}
       propertyPath: m_LocalScale.y
-      value: 8
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 4166140968286780, guid: 97f0c3b3efcb7c44db21c24189d5f688, type: 3}
       propertyPath: m_LocalScale.z
-      value: 8
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 198371684985884790, guid: 97f0c3b3efcb7c44db21c24189d5f688,
+        type: 3}
+      propertyPath: TrailModule.sizeAffectsLifetime
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97f0c3b3efcb7c44db21c24189d5f688, type: 3}
@@ -12696,6 +12708,7 @@ MonoBehaviour:
   ResistanceRate: 10
   SpringForceRate: 10
   JumpBoost: 0
+  velocity: 0
 --- !u!1 &2098812159
 GameObject:
   m_ObjectHideFlags: 0
@@ -12776,11 +12789,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37ff6a8f32bb545b698a436c0ef41658, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  state: 0
   game: {fileID: 1900428153}
   Model: {fileID: 1321934290}
   HeadLight: {fileID: 997580066}
   Trampo: {fileID: 2067655034}
   timingRings: {fileID: 1185468423}
+  TrailEffect: {fileID: 750225362}
   DefaultDownForce: 150
   TapAddForceRate: 1.4
   RingAccelForceRate: 5
