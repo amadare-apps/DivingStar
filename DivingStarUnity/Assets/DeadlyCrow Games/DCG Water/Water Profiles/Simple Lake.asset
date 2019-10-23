@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 834055d6f6f90c54d82073ae1080cc5c, type: 3}
+  m_Name: Simple Lake
+  m_EditorClassIdentifier: 
+  waterMaterial: {fileID: 2100000, guid: 4958d0d3c8691fa4da4d9658128ca581, type: 2}
+  backfaceMaterial: {fileID: 2100000, guid: f0dd7e72ff68f9e4ca657079138373c7, type: 2}
+  wavesAttributes:
+  - noiseType: 0
+    waveScale: 6
+    waveSpeed: 2
+    waveIntensity: 0.1
+    heightOffset: 0

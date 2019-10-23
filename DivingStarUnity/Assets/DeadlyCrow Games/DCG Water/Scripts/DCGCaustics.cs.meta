@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 4ef73f4468fb96648bb3ce175df767b5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - causticsMaterial: {fileID: 2100000, guid: fed834bdbdf560b459fe451fe942c2b7, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

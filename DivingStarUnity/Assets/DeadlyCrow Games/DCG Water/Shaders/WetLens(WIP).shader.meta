@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: edd30b61063614346996de013d249994
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _Normal: {fileID: 2800000, guid: c0e655fec9f7745498db10bdac01f8fa, type: 3}
+  - _WetLensMap: {fileID: 2800000, guid: 11b1decd7a383864fa9c5fa481d77e4f, type: 3}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

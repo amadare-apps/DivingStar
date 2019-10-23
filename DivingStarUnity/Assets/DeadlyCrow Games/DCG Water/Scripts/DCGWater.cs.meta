@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 4acf30953b4f7e1438f6a62000221967
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - waterProfile: {fileID: 11400000, guid: 2e6c41314792c404b918128f8d5b851c, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
