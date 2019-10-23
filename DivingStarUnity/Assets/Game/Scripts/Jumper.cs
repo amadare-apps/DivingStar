@@ -7,6 +7,8 @@ public class Jumper : MonoBehaviour
 {
 	enum State{
 		Idle,
+		PreCharge,
+		Charge,
 		Jump,
 		Round,
 		Descent,	
@@ -15,7 +17,7 @@ public class Jumper : MonoBehaviour
 		Crash,
 		Drown,//溺れる
 	}
-	State state;
+	[SerializeField] State state;
 	float timeSinceStateChanged;
 
 	public GameComtroller game;
@@ -42,6 +44,10 @@ public class Jumper : MonoBehaviour
 	Vector3 initCameraJointAnchor;
 	Vector3 initCameraAngle;
 
+	JumpCamera jumpCamera;
+
+	public float velocity;
+
 
 	// Start is called before the first frame update
 	void Start()
@@ -49,32 +55,47 @@ public class Jumper : MonoBehaviour
 		rBody = GetComponent<Rigidbody>();
 		anim = GetComponentInChildren<Animator>();
 
-		initCameraJointAnchor = game.JumpCamera.GetComponent<SpringJoint>().connectedAnchor;
-		initCameraAngle = game.JumpCamera.transform.localEulerAngles;
+		this.jumpCamera = game.JumpCamera;
+		initCameraJointAnchor = this.jumpCamera.GetComponent<SpringJoint>().connectedAnchor;
+		initCameraAngle = this.jumpCamera.transform.localEulerAngles;
 		HeadLight.SetActive(false);
+	}
+
+	void ChangeState(State state)
+	{
+		Debug.Log("Jumper.ChangeState() " + this.state + " to " + state);
+		timeSinceStateChanged = 0f;
+		this.state = state;
 	}
 
 	private void FixedUpdate()
 	{
 		timeSinceStateChanged += Time.fixedDeltaTime;
 
-		if (state == State.Idle || state == State.Jump) {
+		if (state == State.Idle || state == State.PreCharge) {
 
 			// トランポリンに接している間
 			if (this.transform.localPosition.y < 0f && rBody.velocity.y < 0f) {
 				var downForce = Vector3.down * DefaultDownForce;
+				rBody.AddForce(downForce);
 
-				if (timeSinceStateChanged > 2f) {
-					if (GetTouchCount() == 1) {
-						downForce *= TapAddForceRate;
-						if (state == State.Idle) {
-							state = State.Jump;
-							Trampo.JumpBoost = true;
-							//game.ToJump();
-						}
+				if (timeSinceStateChanged > 2f && state == State.Idle) {
+					if (TouchController.Instance.GetTouchCount() == 1) {
+						ChangeState(State.PreCharge);
+						//Trampo.ToPreCharge();
+					}
+				}else if(state == State.PreCharge){
+
+					if (this.transform.localPosition.y < -0.003f && rBody.velocity.y > -1.0f) {
+						Debug.Log("PreCharge velocity = " + rBody.velocity.y + " trans=" + this.transform.localPosition.y);
+						ChangeState(State.Charge);
+						rBody.velocity = Vector3.zero;
+						rBody.useGravity = false;
+						//HyperCasualGames.VibrationController.Triple();
+						jumpCamera.ToCharge();
+						Trampo.ToCharge();
 					}
 				}
-				rBody.AddForce(downForce);
 			}
 
 			//Debug.Log("velocityY="+rBody.velocity.y+" anim="+anim.GetCurrentAnimatorStateInfo(0).shortNameHash+" isName?"+ anim.GetCurrentAnimatorStateInfo(0).IsName("JumpAnim"));
@@ -89,34 +110,9 @@ public class Jumper : MonoBehaviour
 				animTriggered = false;
 			}
 
-			// ジャンプ後、降下し始めるちょい前に回転開始
-			if (state == State.Jump) {
-				if (this.transform.localPosition.y > 0f && rBody.velocity.y < 1f) {
-
-					state = State.Round;
-					timeSinceStateChanged = 0f;
-
-					// いったんJoint切断
-					GameObject.Destroy(game.JumpCamera.GetComponent<SpringJoint>());
-
-					var cameraBody = game.JumpCamera.GetComponent<Rigidbody>();
-					cameraBody.useGravity = false;
-					//cameraBody.velocity = Vector3.zero;
-					//cameraBody.angularVelocity = Vector3.zero;
-					var constraints = cameraBody.constraints;
-					constraints |= RigidbodyConstraints.FreezePositionY;
-					constraints |= RigidbodyConstraints.FreezeRotationX;
-					//cameraBody.constraints = constraints;
-
-					game.ToDescent();
-
-					HyperCasualGames.VibrationController.Double0();
-				}
-			}
-
 			//if(state == State.Idle)
 			{
-				if(rBody.velocity.y < 0f){
+				if (rBody.velocity.y < 0f) {
 					this.timingRings.ShowAll();
 
 					if (state == State.Idle) {
@@ -128,25 +124,48 @@ public class Jumper : MonoBehaviour
 							this.timingRings.SetRadius(1f + this.transform.localPosition.y / 1.4f);
 						}
 					}
-				}else{
+				} else {
 					this.timingRings.HideAll();
 				}
+			}
+
+		}else if(state == State.Charge){
+
+			//var downForce = Vector3.down * DefaultDownForce;
+			//rBody.AddForce(downForce);
+			rBody.velocity = Vector3.zero;
+
+			if (timeSinceStateChanged > 1f){
+				//Debug.Break();
+			}
+
+			if (TouchController.Instance.GetTouchCount() != 1){
+				ChangeState(State.Jump);
+				jumpCamera.ToJump();
+				Trampo.ToJump();
+				game.ToJump();
+
+				rBody.useGravity = true;
+			}
+
+		} else if(state == State.Jump){
+
+			// ジャンプ後、降下し始めるちょい前に回転開始
+			if (this.transform.localPosition.y > 0f && rBody.velocity.y < 0.2f) {
+
+				ChangeState(State.Round);
+				jumpCamera.ToRound();
+
+				game.ToDescent();
+
+				HyperCasualGames.VibrationController.Double0();
 			}
 
 		} else if (state == State.Round) {
 
 			// chara angle
-			var t1 = (timeSinceStateChanged - 0.0f) / 0.8f;
+			var t1 = (timeSinceStateChanged - 0.0f) / 2.0f;
 			if (t1 > 1f) t1 = 1f;
-
-			// camera angle
-			var t2 = (timeSinceStateChanged - 0.00f) / 0.5f;
-			if (t2 > 1f) t2 = 1f;
-
-			// joint point
-			var t3 = (timeSinceStateChanged - 0.0f) / 0.5f;
-			if (t3 > 1f) t2 = 1f;
-
 
 			if (t1 > 0f) {
 				var from = Vector3.zero;
@@ -157,72 +176,14 @@ public class Jumper : MonoBehaviour
 				Model.transform.eulerAngles = angle;
 			}
 
-			if (t2 > 0 && game.JumpCamera.transform.eulerAngles.x < 89f) {
-
-				var lookAtPos = this.transform.position;
-				game.JumpCamera.transform.LookAt(lookAtPos, game.JumpCamera.transform.up);
-				if (game.JumpCamera.transform.eulerAngles.x > 89f) {
-					game.JumpCamera.transform.eulerAngles = new Vector3(89f, 0f, 0f);
-				}
-				if (game.JumpCamera.transform.eulerAngles.y < 0f) {
-					game.JumpCamera.transform.eulerAngles = new Vector3(game.JumpCamera.transform.eulerAngles.x, 0f, 0f);
-				}
-
-				//var toCameraAngle = new Vector3(82.05f, 0f, 0f);
-				//var cameraAngle = Vector3.Lerp(initCameraAngle, toCameraAngle, t2);
-				//game.JumpCamera.transform.eulerAngles = cameraAngle;
-
-				//Debug.Log("t2=" + t2 + " anchor=" + anchor + " agole=" + cameraAngle);
-			}
-
-			if (t3 > 0f) {
-
-				var joint = game.JumpCamera.GetComponent<FixedJoint>();
-				if (!joint) {
-
-					joint = game.JumpCamera.gameObject.AddComponent<FixedJoint>();
-					joint.connectedBody = this.rBody;
-					initCameraJointAnchor = joint.connectedAnchor;
-					joint.autoConfigureConnectedAnchor = false;
-					//joint.damper = 0.5f;
-					//joint.spring = 10f;
-					//joint.maxDistance = 0.2f;
-
-					var cameraBody = game.JumpCamera.GetComponent<Rigidbody>();
-					var constraints = cameraBody.constraints;
-					//constraints &= ~RigidbodyConstraints.FreezePositionY;
-					constraints |= RigidbodyConstraints.FreezeRotationX;
-					cameraBody.constraints = constraints;
-				}
-
-
-				var toJointAnchor = new Vector3(0f, 6f, 0.2f);
-				var anchor = Vector3.Lerp(initCameraJointAnchor, toJointAnchor, t3);
-				joint.connectedAnchor = anchor;
-				//game.JumpCamera.transform.localPosition = anchor;
-			}
-
-
-			//game.JumpCamera.transform.LookAt(this.transform);
-			//if(game.JumpCamera.transform.eulerAngles.x > 82f){
-			//	game.JumpCamera.transform.eulerAngles = new Vector3(82f, 0f, 0f);
-			//}
-
-			if (timeSinceStateChanged >= 1.5f) {
-				state = State.Descent;
+			if (timeSinceStateChanged >= 2.0f) {
+				ChangeState(State.Descent);
+				jumpCamera.ToDescent();
 				{
 					var constraints = rBody.constraints;
 					constraints &= ~RigidbodyConstraints.FreezePositionX;
 					constraints &= ~RigidbodyConstraints.FreezePositionZ;
 					rBody.constraints = constraints;
-					//					rBody.constraints = RigidbodyConstraints.None;
-				}
-				{
-					var cameraBody = game.JumpCamera.GetComponent<Rigidbody>();
-					var constraints = cameraBody.constraints;
-					constraints &= ~RigidbodyConstraints.FreezePositionX;
-					constraints &= ~RigidbodyConstraints.FreezePositionZ;
-					cameraBody.constraints = constraints;
 				}
 			}
 
@@ -246,7 +207,8 @@ public class Jumper : MonoBehaviour
 			}
 
 			if (this.transform.position.y < 0f) {
-				state = State.Diving;
+				ChangeState(State.Diving);
+				jumpCamera.ToDiving();
 				HyperCasualGames.VibrationController.Triple();
 				//HeadLight.SetActive(true);
 				game.ToDiving();
@@ -284,7 +246,7 @@ public class Jumper : MonoBehaviour
 
 			if (rBody.velocity.y >= 0f) {
 
-				state = State.Finish;
+				ChangeState(State.Finish);
 				rBody.isKinematic = true;
 				game.ToRecord();
 
@@ -292,14 +254,14 @@ public class Jumper : MonoBehaviour
 
 			} else if(DangerRate >= 1f){
 
-				state = State.Drown;
+				ChangeState(State.Drown);
 				game.ToDrown();
 
 				rBody.useGravity = false;
 				rBody.velocity = Vector3.down * 2.0f;
 
-				GameObject.Destroy(game.JumpCamera.GetComponent<FixedJoint>());
-				GameObject.Destroy(game.JumpCamera.GetComponent<Rigidbody>());
+				//GameObject.Destroy(this.jumpCamera.GetComponent<FixedJoint>());
+				//GameObject.Destroy(this.jumpCamera.GetComponent<Rigidbody>());
 				//game.JumpCamera.GetComponent<Rigidbody>().useGravity = false;
 				//game.JumpCamera.GetComponent<Rigidbody>().velocity = Vector3.down * 1.0f;
 
@@ -308,13 +270,13 @@ public class Jumper : MonoBehaviour
 
 		} else if(state == State.Crash){
 
-			game.JumpCamera.transform.LookAt(this.transform);
+			this.jumpCamera.transform.LookAt(this.transform);
 
 		}else if(state == State.Drown){
 
 		}
 
-
+		this.velocity = rBody.velocity.y;
 	}
 
 	private void OnCollisionEnter(Collision collision)
@@ -326,12 +288,12 @@ public class Jumper : MonoBehaviour
 			}
 
 		} else if (state == State.Descent){
-			state = State.Crash;
+			ChangeState(State.Crash);
 
 			rBody.constraints = RigidbodyConstraints.None;
 			rBody.AddExplosionForce(100f, this.transform.position - Vector3.down * 2, 10f);
 
-			var cameraBody = game.JumpCamera.GetComponent<Rigidbody>();
+			var cameraBody = this.jumpCamera.GetComponent<Rigidbody>();
 			cameraBody.isKinematic = true;
 			GameObject.Destroy(cameraBody.GetComponent<FixedJoint>());
 
@@ -351,69 +313,6 @@ public class Jumper : MonoBehaviour
 				HyperCasualGames.VibrationController.Double0();
 			}
 		}
-	}
-
-
-	// Update is called once per frame
-	void Update()
-	{
-		if(GetTouchCount() == 1){
-			var touch = GetTouch();
-			if(touch.phase == TouchPhase.Began){
-				this.touchStartPos = touch.position;
-			}else if(touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled){
-				this.touchStartPos = Vector2.zero;
-			}
-		}
-	}
-
-	public Vector2 TouchDeltaFromStartPos(){
-		if(GetTouchCount() == 1){
-			var touch = GetTouch();
-			if(touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary){
-				return touch.position - this.touchStartPos;
-			}
-		}
-		return Vector2.zero;
-	}
-
-	public int GetTouchCount()
-	{
-
-		if (Application.isEditor) {
-			if (EventSystem.current.IsPointerOverGameObject()) return 0;
-			if (Input.GetMouseButtonDown(0)) return 1;
-			if (Input.GetMouseButton(0)) return 1;
-			if (Input.GetMouseButtonUp(0)) return 1;
-			return 0;
-		}
-
-		if (Input.touchCount == 0) return 0;
-
-		if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)) {
-			return 0;
-		}
-
-		return Input.touchCount;
-	}
-
-	Vector3 lastMousePos;
-	Vector2 touchStartPos;
-
-	public Touch GetTouch()
-	{
-		if (Application.isEditor) {
-			Touch t = new Touch();
-			if (Input.GetMouseButtonDown(0)) t.phase = TouchPhase.Began;
-			else if (Input.GetMouseButtonUp(0)) t.phase = TouchPhase.Ended;
-			else if (Input.GetMouseButton(0)) t.phase = TouchPhase.Moved;
-			t.position = Input.mousePosition;
-			t.deltaPosition = Input.mousePosition - lastMousePos;
-			lastMousePos = Input.mousePosition;
-			return t;
-		}
-
-		return Input.GetTouch(0);
 	}
 
 }

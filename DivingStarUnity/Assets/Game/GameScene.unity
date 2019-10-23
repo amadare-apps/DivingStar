@@ -4325,6 +4325,7 @@ GameObject:
   - component: {fileID: 733544123}
   - component: {fileID: 733544127}
   - component: {fileID: 733544126}
+  - component: {fileID: 733544129}
   - component: {fileID: 733544125}
   - component: {fileID: 733544124}
   - component: {fileID: 733544128}
@@ -4361,7 +4362,7 @@ SpringJoint:
   m_AutoConfigureConnectedAnchor: 0
   m_ConnectedAnchor: {x: 0, y: 4, z: -9}
   serializedVersion: 2
-  m_Spring: 10
+  m_Spring: 5
   m_Damper: 0.5
   m_MinDistance: 0
   m_MaxDistance: 0.2
@@ -4498,6 +4499,18 @@ MonoBehaviour:
   m_BeforeTransparentBundles: []
   m_BeforeStackBundles: []
   m_AfterStackBundles: []
+--- !u!114 &733544129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733544122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 755510ff7d8bd433c8444dcd18232509, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &737846338
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11583,7 +11596,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   jumperOrg: {fileID: 2098812163}
-  JumpCameraOrg: {fileID: 733544127}
+  JumpCameraOrg: {fileID: 733544129}
   JumpCameraJoint: {fileID: 733544124}
   TrampoObj: {fileID: 1832445219}
   Trampo: {fileID: 2067655034}
@@ -12681,7 +12694,7 @@ MonoBehaviour:
   game: {fileID: 1900428153}
   SpringRate: 40000
   ResistanceRate: 10
-  SpringForceRate: 5
+  SpringForceRate: 10
   JumpBoost: 0
 --- !u!1 &2098812159
 GameObject:

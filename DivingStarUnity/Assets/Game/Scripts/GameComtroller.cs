@@ -19,7 +19,7 @@ public class GameComtroller : MonoBehaviour
 
 
 	[SerializeField] Jumper jumperOrg;
-	[SerializeField] Camera JumpCameraOrg;
+	[SerializeField] JumpCamera JumpCameraOrg;
 	public SpringJoint JumpCameraJoint;
 	public GameObject TrampoObj;
 	public Trampoline Trampo;
@@ -27,7 +27,7 @@ public class GameComtroller : MonoBehaviour
 	public List<AccelRing> Rings;
 	public UnderWater Ocean;
 
-	public Camera JumpCamera;
+	public JumpCamera JumpCamera;
 	public Jumper jumper;
 
 	// UI
@@ -75,6 +75,8 @@ public class GameComtroller : MonoBehaviour
 		JumpCameraOrg.gameObject.SetActive(false);
 
 		JumpCamera.GetComponent<SpringJoint>().connectedBody = jumper.GetComponent<Rigidbody>();
+
+		JumpCamera.Setup(jumper);
 
 		strengthUI.Setup(jumper, Trampo);
 
