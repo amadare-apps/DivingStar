@@ -296,7 +296,7 @@ public class Jumper : MonoBehaviour
 			if (!BoostEffect.isPlaying) BoostEffect.Play();
 			var emission = BoostEffect.emission;
 			if (emission.rateOverTime.constant < 200f) {
-				emission.rateOverTime = emission.rateOverTime.constant + 20f;
+				emission.rateOverTime = emission.rateOverTime.constant + 40f;
 			}
 		}else{
 			var emission = BoostEffect.emission;

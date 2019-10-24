@@ -95,9 +95,9 @@ public class JumpCamera : MonoBehaviour
 
 		} else if(state == State.Charge){
 
-			float t = timeSinceStateChanged > 0.5f ? 1f : timeSinceStateChanged / 0.5f;
+			float t = timeSinceStateChanged > 10.2f ? 1f : timeSinceStateChanged / 10.2f;
 
-			var toDiff = new Vector3(0f, 5.5f, -9.0f);
+			var toDiff = new Vector3(0f, 7.0f, -7.5f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 
 			this.transform.position = jumper.transform.position + toDiff;
@@ -158,7 +158,7 @@ public class JumpCamera : MonoBehaviour
 
 			float t = timeSinceStateChanged > 1f ? 1f : timeSinceStateChanged / 1f;
 
-			var toDiff = new Vector3(0f, 4f - jumperBody.velocity.y * 0.1f, 1f);
+			var toDiff = new Vector3(0f, 4f - jumperBody.velocity.y * 0.1f, 0.98f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 			if (toDiff.y < 6f) toDiff.y = 6f;
 			if (toDiff.y > 8f) toDiff.y = 8f;
@@ -185,8 +185,8 @@ public class JumpCamera : MonoBehaviour
 
 		} else if(state == State.Diving){
 
-			// 10~15
-			var rate = jumperBody.velocity.y > -10f ? 0f : (-jumperBody.velocity.y+10f / 5f);
+			// 10~20
+			var rate = jumperBody.velocity.y > -10f ? 0f : (-jumperBody.velocity.y+10f / 10f);
 			if (rate > 1f) rate = 1f;
 
 			var emission = SyuTyuSen.emission;
