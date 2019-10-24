@@ -318,9 +318,9 @@ public class Jumper : MonoBehaviour
 			rBody.constraints = RigidbodyConstraints.None;
 			rBody.AddExplosionForce(100f, this.transform.position - Vector3.down * 2, 10f);
 
-			var cameraBody = this.jumpCamera.GetComponent<Rigidbody>();
-			cameraBody.isKinematic = true;
-			GameObject.Destroy(cameraBody.GetComponent<FixedJoint>());
+			//var cameraBody = this.jumpCamera.GetComponent<Rigidbody>();
+			//cameraBody.isKinematic = true;
+			//GameObject.Destroy(cameraBody.GetComponent<FixedJoint>());
 
 			HyperCasualGames.VibrationController.Triple();
 
