@@ -7,8 +7,8 @@ public class JumpCamera : MonoBehaviour
 	enum State
 	{
 		Idle,
-		Jump,
 		Charge,
+		Jump,
 		Round,
 		Descent,
 		Diving,
@@ -21,6 +21,8 @@ public class JumpCamera : MonoBehaviour
 	//Vector3 posAtStageChanged;
 	Vector3 posDeltaAtStateChanged;//between jumper
 
+	public ParticleSystem SyuTyuSen;
+
 
 	Jumper jumper;
 	Rigidbody jumperBody;
@@ -31,6 +33,7 @@ public class JumpCamera : MonoBehaviour
 		this.jumper = jumper;
 		this.jumperBody = jumper.GetComponent<Rigidbody>();
 		this.cameraBody = this.GetComponent<Rigidbody>();
+		this.SyuTyuSen.Stop();
     }
 
 	void ChangeState(State state){
@@ -70,10 +73,15 @@ public class JumpCamera : MonoBehaviour
 
 	public void ToDescent(){
 		ChangeState(State.Descent);
+		this.SyuTyuSen.Play();
 	}
 
 	public void ToDiving(){
 		ChangeState(State.Diving);
+	}
+
+	public void ToDrown(){
+		ChangeState(State.Drown);
 	}
 
 
@@ -81,19 +89,24 @@ public class JumpCamera : MonoBehaviour
 	{
 		timeSinceStateChanged += Time.fixedDeltaTime;
 
-		if(state == State.Charge){
+		if(state == State.Idle){
+
+			this.transform.LookAt(jumper.transform.position, this.transform.up);
+
+		} else if(state == State.Charge){
 
 			float t = timeSinceStateChanged > 0.5f ? 1f : timeSinceStateChanged / 0.5f;
 
-			var toDiff = new Vector3(0f, 4.5f, -9.0f);
+			var toDiff = new Vector3(0f, 5.5f, -9.0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 
 			this.transform.position = jumper.transform.position + toDiff;
+			this.transform.LookAt(jumper.transform.position, this.transform.up);
 			Debug.Log("Camera.State.Charge lerp to=" + toDiff + " (at="+posDeltaAtStateChanged+")");
 
 		} else if(state == State.Jump){
 
-			float lerpTime = 0.5f;
+			float lerpTime = 1.0f;
 
 			if (timeSinceStateChanged < lerpTime) {
 
@@ -125,47 +138,63 @@ public class JumpCamera : MonoBehaviour
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 
 			this.transform.position = jumper.transform.position + toDiff;
-
 			this.transform.LookAt(jumper.transform.position, this.transform.up);
 			Debug.Log("Camera.State.Round lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")");
-
-			//// iru?
-			//var lookAtPos = jumper.transform.position;
-			//this.transform.LookAt(lookAtPos, this.transform.up);
-			//if (this.transform.eulerAngles.x > 90f) {
-			//	this.transform.eulerAngles = new Vector3(90f, 0f, 0f);
-			//}
-			//if (this.transform.eulerAngles.y < 0f) {
-			//	this.transform.eulerAngles = new Vector3(this.transform.eulerAngles.x, 0f, 0f);
-			//}
-
-			//this.transform.LookAt(jumper.transform, this.transform.up);
 
 		} else if(state == State.Descent){
 
 			float t = timeSinceStateChanged > 1f ? 1f : timeSinceStateChanged / 1f;
 
-			var toDiff = new Vector3(0f, jumperBody.velocity.y * 0.1f, 0f);
+			var toDiff = new Vector3(0f, 3f - jumperBody.velocity.y * 0.05f, 0f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 			if (toDiff.y < 4f) toDiff.y = 4f;
 			if (toDiff.y > 8f) toDiff.y = 8f;
 
 			this.transform.position = jumper.transform.position + toDiff;
-			Debug.Log("Camera.State.Descent lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")");
-
 			this.transform.LookAt(jumper.transform.position, this.transform.up);
+			Debug.Log("Camera.State.Descent lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")  vel=" + jumperBody.velocity.y);
 
-		}else if(state == State.Diving){
+		} else if(state == State.Diving){
 
 			float t = timeSinceStateChanged > 1f ? 1f : timeSinceStateChanged / 1f;
 
-			var toDiff = new Vector3(0f, jumperBody.velocity.y * 0.1f, 0f);
+			var toDiff = new Vector3(0f, 4f - jumperBody.velocity.y * 0.1f, 1f);
 			toDiff = Vector3.Lerp(posDeltaAtStateChanged, toDiff, t);
 			if (toDiff.y < 6f) toDiff.y = 6f;
 			if (toDiff.y > 8f) toDiff.y = 8f;
 
 			this.transform.position = jumper.transform.position + toDiff;
 			this.transform.LookAt(jumper.transform.position, this.transform.up);
+			Debug.Log("Camera.State.Diving lerp to=" + toDiff + " (at=" + posDeltaAtStateChanged + ")  vel=" + jumperBody.velocity.y);
+
+		} else if(state == State.Drown){
+
+
+		}
+
+
+		// effect
+		if(state == State.Descent){
+
+			// 40~60
+			var rate = jumperBody.velocity.y > -40f ? 0f : (-jumperBody.velocity.y+40f / 20f);
+			if (rate > 1f) rate = 1f;
+
+			var emission = SyuTyuSen.emission;
+			emission.rateOverTime = 200f * rate;
+
+		} else if(state == State.Diving){
+
+			// 10~15
+			var rate = jumperBody.velocity.y > -10f ? 0f : (-jumperBody.velocity.y+10f / 5f);
+			if (rate > 1f) rate = 1f;
+
+			var emission = SyuTyuSen.emission;
+			emission.rateOverTime = 200f * rate;
+
+		}else{
+			var emission = SyuTyuSen.emission;
+			emission.rateOverTime = 0f;
 		}
 	}
 }

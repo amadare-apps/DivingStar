@@ -26,6 +26,9 @@ public class Jumper : MonoBehaviour
 	public Trampoline Trampo;
 	public TimingRings timingRings;
 	public ParticleSystem TrailEffect;
+	public ParticleSystem GrowEffect;
+	public IncomingWater IncomingEffect;
+	public ParticleSystem BoostEffect;
 
 	public float DefaultDownForce = 150f;
 	public float TapAddForceRate = 2f;
@@ -72,6 +75,8 @@ public class Jumper : MonoBehaviour
 	private void FixedUpdate()
 	{
 		timeSinceStateChanged += Time.fixedDeltaTime;
+
+		bool boost = false;
 
 		if (state == State.Idle || state == State.PreCharge) {
 
@@ -174,7 +179,7 @@ public class Jumper : MonoBehaviour
 
 			if (t1 > 0f) {
 				var from = Vector3.zero;
-				var to = new Vector3(179f, 0f, 0f);
+				var to = new Vector3(180f, 0f, 0f);
 				var angle = Vector3.Lerp(from, to, t1);
 				//				this.transform.eulerAngles = angle;
 				//rBody.rotation = Quaternion.Euler(angle.x, angle.y, angle.z);
@@ -190,6 +195,7 @@ public class Jumper : MonoBehaviour
 					constraints &= ~RigidbodyConstraints.FreezePositionZ;
 					rBody.constraints = constraints;
 				}
+				GrowEffect.Stop();
 			}
 
 		} else if (state == State.Descent) {
@@ -217,6 +223,7 @@ public class Jumper : MonoBehaviour
 				//HyperCasualGames.VibrationController.Triple();
 				//HeadLight.SetActive(true);
 				game.ToDiving();
+				IncomingEffect.gameObject.SetActive(true);
 			}
 
 		}else if(state == State.Diving){
@@ -234,6 +241,8 @@ public class Jumper : MonoBehaviour
 
 				var thisUsedRate = used / BoostTimeMax;//消費したゲージの
 				DangerRate += thisUsedRate * 1.5f;//1.5倍デンジャーゲージがたまる
+
+				boost = true;
 
 				HyperCasualGames.VibrationController.Single1();
 
@@ -260,6 +269,7 @@ public class Jumper : MonoBehaviour
 			} else if(DangerRate >= 1f){
 
 				ChangeState(State.Drown);
+				jumpCamera.ToDrown();
 				game.ToDrown();
 
 				rBody.useGravity = false;
@@ -279,6 +289,18 @@ public class Jumper : MonoBehaviour
 
 		}else if(state == State.Drown){
 
+		}
+
+		// effect
+		if (boost) {
+			if (!BoostEffect.isPlaying) BoostEffect.Play();
+			var emission = BoostEffect.emission;
+			if (emission.rateOverTime.constant < 200f) {
+				emission.rateOverTime = emission.rateOverTime.constant + 20f;
+			}
+		}else{
+			var emission = BoostEffect.emission;
+			emission.rateOverTime = 0f;
 		}
 	}
 
