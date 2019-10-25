@@ -123,6 +123,8 @@ public class GameComtroller : MonoBehaviour
 		SetActiveTrampoline(true);
 		SetActiveRings(false);
 		InWaterObj.SetActive(false);
+		jumpGauge.gameObject.SetActive(true);
+		jumpGauge.SetPower(0f);
 
 		RecordLabel.gameObject.SetActive(false);
 		CrashLabel.gameObject.SetActive(false);
@@ -142,6 +144,7 @@ public class GameComtroller : MonoBehaviour
 		SetActiveTrampoline(false);
 		SetActiveRings(true);
 		InWaterObj.SetActive(false);
+		jumpGauge.gameObject.SetActive(false);
 	}
 
 	public void ToDiving(){

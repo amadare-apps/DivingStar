@@ -21,7 +21,7 @@ public class JumpGauge : MonoBehaviour
     }
 
 	public void SetMaxPower(float rate){
-		MaxGauge.rectTransform.sizeDelta = new Vector2(26f, 238f * rate);
+		MaxGauge.rectTransform.sizeDelta = new Vector2(565f * rate, 32f);
 	}
 
 	public void SetPower(float rate){

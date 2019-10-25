@@ -139,6 +139,13 @@ public class Jumper : MonoBehaviour
 
 		}else if(state == State.Charge){
 
+			game.jumpGauge.SetPower(timeSinceStateChanged > 2f ? 1f : timeSinceStateChanged / 2f);
+			//if (timeSinceStateChanged % 1f < 0.5f) {
+			//	game.jumpGauge.SetPower((timeSinceStateChanged % 0.5f) / 0.5f);
+			//}else{
+			//	game.jumpGauge.SetPower((0.5f - timeSinceStateChanged % 0.5f) / 0.5f);
+			//}
+
 			//var downForce = Vector3.down * DefaultDownForce;
 			//rBody.AddForce(downForce);
 			rBody.velocity = Vector3.zero;
